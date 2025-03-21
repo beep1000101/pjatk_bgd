@@ -1,0 +1,1 @@
+docker run --rm --env-file .env bgd_lab0
