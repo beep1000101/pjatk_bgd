@@ -1,23 +1,15 @@
-# Use a Python 3.12.2 runtime as a parent image
-FROM python:3.12.2-slim
+FROM python:3.12
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+COPY . /app
 
-# Install dependencies from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r requirements.txt
 
-# Ensure the /app/data directory exists
-RUN mkdir -p /app/data
+ENV DB_USERNAME=postgres \
+    DB_PASSWORD=postgrespassword \
+    DB_HOST=localhost \
+    DB_NAME=bgddatabase
 
-# Copy the Python source code into the container
-COPY python/ ./python/
-
-# Copy the data directory into the container
-COPY data/ /app/data/
-
-# Make the container wait indefinitely
-CMD ["sh", "-c", "echo 'Container is running. Trigger actions manually.' && tail -f /dev/null"]
+# Komenda uruchamiająca skrypt
+CMD ["python", "__main__.py"]

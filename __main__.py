@@ -19,11 +19,12 @@ def main():
     load_dotenv()
 
     # Construct the database URL
-    DATABASE_URL_TEMPLATE = "postgresql+psycopg2://{username}:{password}@{db_host}/{database_name}"
+    DATABASE_URL_TEMPLATE = "postgresql+psycopg2://{username}:{password}@{db_host}:{db_port}/{database_name}"
     DATABASE_URL = DATABASE_URL_TEMPLATE.format(
         username=os.getenv("DB_USERNAME"),
         password=os.getenv("DB_PASSWORD"),
         db_host=os.getenv("DB_HOST"),
+        db_port=os.getenv("DB_PORT"),
         database_name=os.getenv("DB_NAME"),
     )
 
