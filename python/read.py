@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List  # Added for type hinting
+from typing import List
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ def get_data_directory() -> Path:
     """
     current_directory = Path(__file__)
     data_directory = current_directory.parents[1] / 'data'
-    result = data_directory  # Assign result to variable
+    result = data_directory
     return result
 
 
@@ -27,21 +27,21 @@ def get_subdirectory(subdirectory_name: str) -> Path:
     Returns:
         Path: The path to the specified subdirectory.
     """
-    result = get_data_directory() / subdirectory_name  # Assign result to variable
+    result = get_data_directory() / subdirectory_name
     return result
 
 
 def get_orders_directory() -> Path:
-    result = get_subdirectory('orders')  # Assign result to variable
+    result = get_subdirectory('orders')
     return result
 
 
 def get_users_directory() -> Path:
-    result = get_subdirectory('users')  # Assign result to variable
+    result = get_subdirectory('users')
     return result
 
 
-def get_csvs(directory: Path) -> List[Path]:  # Updated type hint
+def get_csvs(directory: Path) -> List[Path]:
     """
     Retrieves all CSV files from the specified directory.
 
@@ -58,11 +58,11 @@ def get_csvs(directory: Path) -> List[Path]:  # Updated type hint
         raise NotADirectoryError(f'{directory} is not a directory.')
     csv_paths = directory.iterdir()
     csv_files = [csv for csv in csv_paths if csv.suffix == '.csv']
-    result = csv_files  # Assign result to variable
+    result = csv_files
     return result
 
 
-def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:  # Updated type hint
+def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:
     """
     Merges multiple CSV files into a single pandas DataFrame.
 
@@ -75,5 +75,5 @@ def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:  # Updated type hint
     df = pd.concat(
         [pd.read_csv(csv, sep=';') for csv in csv_files], ignore_index=True
     )
-    result = df  # Assign result to variable
+    result = df
     return result
