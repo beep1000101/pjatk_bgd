@@ -77,23 +77,3 @@ def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:  # Updated type hint
     )
     result = df  # Assign result to variable
     return result
-
-
-def example():
-    """
-    Example usage:
-    - Reads and merges CSV files from 'orders' and 'users' directories.
-    - Prints the first few rows of each merged DataFrame.
-    """
-    orders_directory = get_orders_directory()
-    orders_csvs = get_csvs(orders_directory)
-    orders_df = merge_csvs(orders_csvs)
-    print(orders_df.head())
-
-    users_directory = get_users_directory()
-    users_csvs = get_csvs(users_directory)
-    users_df = merge_csvs(users_csvs)
-    print(users_df.head())
-
-
-example()
