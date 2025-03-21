@@ -1,37 +1,17 @@
-import os
+from contextlib import contextmanager
+
 import pandas as pd
-
 from sqlalchemy import create_engine, exc, Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-
-from dotenv import load_dotenv
-
-from read import get_orders_directory, get_users_directory, get_csvs, merge_csvs
-
-load_dotenv()
-
-DATABASE_URL_TEMPLATE = "postgresql+psycopg2://{username}:{password}@{db_host}/{database_name}"
-
-DATABASE_URL = DATABASE_URL_TEMPLATE.format(
-    username=os.getenv("DB_USERNAME"),
-    password=os.getenv("DB_PASSWORD"),
-    db_host=os.getenv("DB_HOST"),
-    database_name=os.getenv("DB_NAME"),
-)
-
-# Create the SQLAlchemy engine
-engine = create_engine(DATABASE_URL)
-
-# Base class for models
-Base = declarative_base()
-
-# Session maker to create database session
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+from sqlalchemy.orm import sessionmaker, relationship, Session
+from typing import Generator, Type
 
 # Constants for table names
 USERS_TABLE = "users"
 ORDERS_TABLE = "orders"
+
+# Base class for models
+Base: DeclarativeMeta = declarative_base()
 
 
 class User(Base):
@@ -62,60 +42,42 @@ class Orders(Base):
     customer = relationship("User", back_populates="orders")
 
 
-# Create tables in the database
-def initialize_database():
-    """Initialize the database by creating all tables."""
+def initialize_database(engine) -> None:
+    """
+    Initialize the database by creating all tables.
+
+    Args:
+        engine: SQLAlchemy engine instance.
+    """
     Base.metadata.create_all(bind=engine)
 
 
-# Utility function for session management
-def get_db_session():
-    """Provide a transactional scope around a series of operations."""
-    db = SessionLocal()
+@contextmanager
+def get_db_session(session_factory: sessionmaker) -> Generator[Session, None, None]:
+    """
+    Provide a transactional scope around a series of operations.
+
+    Args:
+        session_factory: SQLAlchemy sessionmaker instance.
+
+    Yields:
+        Session: A database session.
+    """
+    db = session_factory()
     try:
         yield db
     finally:
         db.close()
 
 
-# CRUD Operations
-def create_user(db_session, identifier: int, first_name: str, last_name: str):
-    """Add a single user to the database."""
-    try:
-        db_user = User(identifier=identifier,
-                       first_name=first_name, last_name=last_name)
-        db_session.add(db_user)
-        db_session.commit()
-        db_session.refresh(db_user)
-        return db_user
-    except exc.SQLAlchemyError as e:
-        db_session.rollback()
-        print(f"Error creating user: {e}")
-        return None
+def bulk_insert_users(db_session: Session, users_csv: pd.DataFrame) -> None:
+    """
+    Bulk insert users from a DataFrame.
 
-
-def create_order(db_session, customer_id: int, product: str, quantity: int, total_price: int, order_date: str):
-    """Add a single order to the database."""
-    try:
-        db_order = Orders(
-            customer_id=customer_id,
-            product=product,
-            quantity=quantity,
-            total_price=total_price,
-            order_date=order_date
-        )
-        db_session.add(db_order)
-        db_session.commit()
-        db_session.refresh(db_order)
-        return db_order
-    except exc.SQLAlchemyError as e:
-        db_session.rollback()
-        print(f"Error creating order: {e}")
-        return None
-
-
-def bulk_insert_users(db_session, users_csv: pd.DataFrame):
-    """Bulk insert users from a DataFrame."""
+    Args:
+        db_session (Session): Database session.
+        users_csv (pd.DataFrame): DataFrame containing user data.
+    """
     try:
         records = users_csv.to_dict(orient='records')
         db_session.bulk_insert_mappings(User, records)
@@ -125,8 +87,14 @@ def bulk_insert_users(db_session, users_csv: pd.DataFrame):
         print(f"Error bulk inserting users: {e}")
 
 
-def bulk_insert_orders(db_session, orders_csv: pd.DataFrame):
-    """Bulk insert orders from a DataFrame."""
+def bulk_insert_orders(db_session: Session, orders_csv: pd.DataFrame) -> None:
+    """
+    Bulk insert orders from a DataFrame.
+
+    Args:
+        db_session (Session): Database session.
+        orders_csv (pd.DataFrame): DataFrame containing order data.
+    """
     try:
         records = orders_csv.to_dict(orient='records')
         db_session.bulk_insert_mappings(Orders, records)
@@ -136,43 +104,15 @@ def bulk_insert_orders(db_session, orders_csv: pd.DataFrame):
         print(f"Error bulk inserting orders: {e}")
 
 
-def get_all_users(db_session):
-    """Retrieve all users from the database."""
-    return db_session.query(User).all()
+def drop_table(db_session: Session, table: Type[Base]) -> None:
+    """
+    Drop a specific table.
 
-
-def get_all_orders(db_session):
-    """Retrieve all orders from the database."""
-    return db_session.query(Orders).all()
-
-
-def drop_table(db_session, table):
-    """Drop a specific table."""
+    Args:
+        db_session (Session): Database session.
+        table (Type[Base]): SQLAlchemy table class to drop.
+    """
     try:
         table.__table__.drop(db_session.bind)
     except exc.SQLAlchemyError as e:
         print(f"Error dropping table: {e}")
-
-
-# Main function to run the script
-def main():
-    initialize_database()
-
-    with SessionLocal() as db:
-        # Load and merge user data
-        users_directory = get_users_directory()
-        users_csvs = get_csvs(users_directory)
-        users_df = merge_csvs(users_csvs)
-
-        # Load and merge order data
-        orders_directory = get_orders_directory()
-        orders_csvs = get_csvs(orders_directory)
-        orders_df = merge_csvs(orders_csvs)
-
-        # Insert data into the database
-        bulk_insert_users(db, users_df)
-        bulk_insert_orders(db, orders_df)
-
-
-if __name__ == "__main__":
-    main()

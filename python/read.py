@@ -79,7 +79,7 @@ def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:  # Updated type hint
     return result
 
 
-if __name__ == '__main__':
+def example():
     """
     Example usage:
     - Reads and merges CSV files from 'orders' and 'users' directories.
@@ -94,3 +94,6 @@ if __name__ == '__main__':
     users_csvs = get_csvs(users_directory)
     users_df = merge_csvs(users_csvs)
     print(users_df.head())
+
+
+example()
