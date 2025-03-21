@@ -39,7 +39,10 @@ This project is a data processing pipeline for managing user and order data. It 
    DB_PORT=<your_database_port>
    ```
 
-4. Build and start the Docker containers:
+4. Configure your local PostgreSQL database:
+   Ensure your local PostgreSQL instance is running and configured to accept connections with the username and password specified in the `.env` file. You may need to update your `pg_hba.conf` file to allow password authentication.
+
+5. Build and start the Docker containers:
    ```bash
    docker-compose up --build
    ```
@@ -75,7 +78,7 @@ This project is a data processing pipeline for managing user and order data. It 
 
 ## Testing
 
-The project was tested on Fedora 41 with Python 3.12. Ensure your environment matches these specifications for optimal performance.
+The project was tested on Fedora 41 with Python 3.12 and a local PostgreSQL database. Ensure your PostgreSQL instance is properly configured for username and password validation to match the `.env` file.
 
 ## License
 
