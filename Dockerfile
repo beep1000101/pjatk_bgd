@@ -10,8 +10,14 @@ COPY requirements.txt .
 # Install dependencies from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure the /app/data directory exists
+RUN mkdir -p /app/data
+
 # Copy the Python source code into the container
 COPY python/ ./python/
+
+# Copy the data directory into the container
+COPY data/ /app/data/
 
 # Make the script executable
 CMD ["python", "./python/read.py"]
