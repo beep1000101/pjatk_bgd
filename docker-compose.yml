@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pjatk_bgd_app
+    command: python ./python/read.py
+    volumes:
+      - ./python:/app/python  # Mount local directory to container
+      - ./requirements.txt:/app/requirements.txt  # Mount requirements.txt for updates
+    environment:
+      - PYTHONUNBUFFERED=1  # Ensure logs are immediately flushed
+    restart: unless-stopped  # Restart policy
