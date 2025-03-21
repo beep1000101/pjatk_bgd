@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List  # Added for type hinting
 
 import pandas as pd
 
@@ -12,32 +13,35 @@ def get_data_directory() -> Path:
     """
     current_directory = Path(__file__)
     data_directory = current_directory.parents[1] / 'data'
-    return data_directory
+    result = data_directory  # Assign result to variable
+    return result
+
+
+def get_subdirectory(subdirectory_name: str) -> Path:
+    """
+    Gets the path to a subdirectory inside the 'data' directory.
+
+    Args:
+        subdirectory_name (str): The name of the subdirectory.
+
+    Returns:
+        Path: The path to the specified subdirectory.
+    """
+    result = get_data_directory() / subdirectory_name  # Assign result to variable
+    return result
 
 
 def get_orders_directory() -> Path:
-    """
-    Gets the path to the 'orders' directory inside the 'data' directory.
-
-    Returns:
-        Path: The path to the 'orders' directory.
-    """
-    orders_directory = get_data_directory() / 'orders'
-    return orders_directory
+    result = get_subdirectory('orders')  # Assign result to variable
+    return result
 
 
 def get_users_directory() -> Path:
-    """
-    Gets the path to the 'users' directory inside the 'data' directory.
-
-    Returns:
-        Path: The path to the 'users' directory.
-    """
-    users_directory = get_data_directory() / 'users'
-    return users_directory
+    result = get_subdirectory('users')  # Assign result to variable
+    return result
 
 
-def get_csvs(directory: Path) -> list:
+def get_csvs(directory: Path) -> List[Path]:  # Updated type hint
     """
     Retrieves all CSV files from the specified directory.
 
@@ -45,7 +49,7 @@ def get_csvs(directory: Path) -> list:
         directory (Path): The directory to search for CSV files.
 
     Returns:
-        list: A list of paths to CSV files in the directory.
+        List[Path]: A list of paths to CSV files in the directory.
 
     Raises:
         NotADirectoryError: If the specified path is not a directory.
@@ -54,15 +58,16 @@ def get_csvs(directory: Path) -> list:
         raise NotADirectoryError(f'{directory} is not a directory.')
     csv_paths = directory.iterdir()
     csv_files = [csv for csv in csv_paths if csv.suffix == '.csv']
-    return csv_files
+    result = csv_files  # Assign result to variable
+    return result
 
 
-def merge_csvs(csv_files: list) -> pd.DataFrame:
+def merge_csvs(csv_files: List[Path]) -> pd.DataFrame:  # Updated type hint
     """
     Merges multiple CSV files into a single pandas DataFrame.
 
     Args:
-        csv_files (list): A list of paths to CSV files.
+        csv_files (List[Path]): A list of paths to CSV files.
 
     Returns:
         pd.DataFrame: A DataFrame containing the merged data from all CSV files.
@@ -70,11 +75,16 @@ def merge_csvs(csv_files: list) -> pd.DataFrame:
     df = pd.concat(
         [pd.read_csv(csv, sep=';') for csv in csv_files], ignore_index=True
     )
-    return df
+    result = df  # Assign result to variable
+    return result
 
 
-# example of use
 if __name__ == '__main__':
+    """
+    Example usage:
+    - Reads and merges CSV files from 'orders' and 'users' directories.
+    - Prints the first few rows of each merged DataFrame.
+    """
     orders_directory = get_orders_directory()
     orders_csvs = get_csvs(orders_directory)
     orders_df = merge_csvs(orders_csvs)
