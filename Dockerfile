@@ -19,5 +19,5 @@ COPY python/ ./python/
 # Copy the data directory into the container
 COPY data/ /app/data/
 
-# Make the script executable
-CMD ["python", "./python/read.py"]
+# Make the container wait indefinitely
+CMD ["sh", "-c", "echo 'Container is running. Trigger actions manually.' && tail -f /dev/null"]
