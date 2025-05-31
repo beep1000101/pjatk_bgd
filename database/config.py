@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from enum import StrEnum
 
 from dotenv import load_dotenv
 
@@ -65,3 +66,28 @@ class ProductionConfig(BaseConfig):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL', 'postgresql://user:password@localhost/dbname')
+
+
+class ConfigType(StrEnum):
+    """
+    Enum for configuration types.
+
+    Attributes
+    ----------
+    DEVELOPMENT : str
+        Development configuration.
+    TESTING : str
+        Testing configuration.
+    PRODUCTION : str
+        Production configuration.
+    """
+    DEVELOPMENT = 'development'
+    TESTING = 'testing'
+    PRODUCTION = 'production'
+
+
+configurations = {
+    ConfigType.DEVELOPMENT: DevelopmentConfig,
+    ConfigType.TESTING: TestingConfig,
+    ConfigType.PRODUCTION: ProductionConfig
+}
