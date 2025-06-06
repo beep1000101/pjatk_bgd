@@ -24,19 +24,20 @@ def create_app(config_name):
     Flask
         The configured Flask application instance.
     """
-    from flask_app.routes.pokemon import pokemon_routes
-    from flask_app.routes.pokemon_entities import pokemon_entities_routes
-    from flask_app.routes.errors import register_error_handlers
+    # import routes
+    # from flask_app.routes.pokemon import pokemon_routes
+    # import error handlers
+    # from flask_app.routes.errors import register_error_handlers
     app = Flask(__name__)
     app.config.from_object(config_name)
 
     db.init_app(app)
     ma.init_app(app)
 
-    app.register_blueprint(pokemon_routes)
-    app.register_blueprint(pokemon_entities_routes)
-
-    register_error_handlers(app=app)
+    # register the routes
+    # app.register_blueprint(pokemon_routes)
+    # register the error handlers
+    # register_error_handlers(app=app)
 
     @app.route('/')
     def hello_world():
