@@ -34,6 +34,57 @@ services:
     ports:
       - "${KAFKA_PORT}:${KAFKA_PORT}"
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:${KAFKA_PORT}
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+    ports:
+      - "${SCHEMA_REGISTRY_PORT}:${SCHEMA_REGISTRY_PORT}"
+
+
+  connect:
+    image: debezium/connect:2.4
+    container_name: connect
+    depends_on:
+      - kafka
+      - schema-registry
+      - postgres
+    ports:
+      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
+    volumes:
+      - ./jars:/etc/kafka-connect/jars
+    environment:
+      BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my_connect_configs
+      OFFSET_STORAGE_TOPIC: my_connect_offsets
+      STATUS_STORAGE_TOPIC: my_connect_statuses
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars"
+
+
+
+  connector-registrator:
+    build:
+      context: .
+    depends_on:
+      - connect
+    entrypoint: >
+      sh -c "
+        python scripts/generate_register_json.py &&
+        curl -X POST -H 'Content-Type: application/json' \
+            --data @register-postgres.json \
+            http://connect:${CONNECTOR_PORT}/connectors
+      "
+
+
   generator:
     build: .
     container_name: generator
