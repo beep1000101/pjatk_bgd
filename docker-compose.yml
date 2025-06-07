@@ -56,9 +56,7 @@ services:
       - schema-registry
       - postgres
     ports:
-      - "8083:8083"
-    volumes:
-      - ./etc/kafka-connect:/kafka/connect
+      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
     environment:
       BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
       GROUP_ID: 1
@@ -70,6 +68,7 @@ services:
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
       CONNECT_PLUGIN_PATH: "/usr/share/java,/kafka/connect/jars"
+
 
 
 
