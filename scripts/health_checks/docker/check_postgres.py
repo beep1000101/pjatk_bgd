@@ -4,6 +4,8 @@ from logging import basicConfig, INFO, getLogger
 import psycopg2
 from dotenv import load_dotenv
 
+from scripts.health_checks.docker.utils.track_health import track_health
+
 load_dotenv()
 
 # Configure logging
@@ -14,6 +16,7 @@ basicConfig(
 logger = getLogger(__name__)
 
 
+@track_health()
 def check_postgres():
     logger.info("Starting PostgreSQL health check...")
     try:

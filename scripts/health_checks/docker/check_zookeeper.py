@@ -2,10 +2,13 @@ import os
 import socket
 from logging import basicConfig, INFO, getLogger
 
+from scripts.health_checks.docker.utils.track_health import track_health
+
 basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = getLogger(__name__)
 
 
+@track_health()
 def check_zookeeper():
     logger.info("Checking Zookeeper health...")
     host = os.getenv("ZOOKEEPER_HOST", "localhost")

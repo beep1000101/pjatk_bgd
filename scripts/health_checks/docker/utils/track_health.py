@@ -14,6 +14,9 @@ class HealthStats:
         self.success = 0
         self.failure = 0
 
+    def __len__(self) -> int:
+        return self.total()
+
 
 health_stats = HealthStats()
 
