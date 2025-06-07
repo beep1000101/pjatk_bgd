@@ -66,7 +66,6 @@ services:
       VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
-      # CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars"
       CONNECT_PLUGIN_PATH: "/kafka/connect,/usr/share/java,/etc/kafka-connect/jars"
 
   connector-registrator:
@@ -89,8 +88,6 @@ services:
       DB_SLOT_NAME: ${DB_SLOT_NAME}
       DB_TOPIC_PREFIX: ${DB_TOPIC_PREFIX}
       SCHEMA_REGISTRY_URL: ${SCHEMA_REGISTRY_URL}
-    # volumes:
-    #   - ./scripts:/app/scripts
 
   kafka-tools:
     image: confluentinc/cp-schema-registry:7.5.0
