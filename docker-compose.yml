@@ -55,7 +55,7 @@ services:
       - schema-registry
       - postgres
     ports:
-      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"  # zazwyczaj 8083:8083
+      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
     environment:
       BOOTSTRAP_SERVERS: "kafka:${KAFKA_PORT}"
       GROUP_ID: "1"
