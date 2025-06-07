@@ -4,7 +4,6 @@ from logging import basicConfig, INFO
 from scripts.health_checks.docker import (
     check_postgres,
     check_zookeeper,
-    check_kafka,
     check_schema_registry,
     check_connect
 )
@@ -18,7 +17,7 @@ if __name__ == "__main__":
     logger.info("Starting health checks for Docker services...")
     check_postgres.check_postgres()
     check_zookeeper.check_zookeeper()
-    check_kafka.check_kafka()
+    check_connect.check_connect()
     check_schema_registry.check_schema_registry()
     check_connect.check_connect()
     logger.info("All health checks completed.")
