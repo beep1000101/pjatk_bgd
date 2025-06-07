@@ -1,5 +1,8 @@
+# bazujemy na oficjalnym obrazie Debezium Connect
 FROM debezium/connect:2.4
 
-ENV CONNECT_PLUGIN_PATH="/usr/share/java,/kafka/connect"
+# ścieżki gdzie Connect szuka pluginów
+ENV CONNECT_PLUGIN_PATH="/usr/share/java,/etc/kafka-connect/jars"
 
-COPY etc/kafka/connect/jars
+# kopiujemy Twój JAR do folderu, do którego wskazuje CONNECT_PLUGIN_PATH
+COPY etc/kafka/connect/jars /etc/kafka-connect/jars

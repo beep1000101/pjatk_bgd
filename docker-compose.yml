@@ -45,7 +45,6 @@ services:
     ports:
       - "${SCHEMA_REGISTRY_PORT}:${SCHEMA_REGISTRY_PORT}"
 
-
   connect:
     build:
       context: .
@@ -56,21 +55,18 @@ services:
       - schema-registry
       - postgres
     ports:
-      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
+      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"  # zazwyczaj 8083:8083
     environment:
-      BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
-      GROUP_ID: 1
-      CONFIG_STORAGE_TOPIC: my_connect_configs
-      OFFSET_STORAGE_TOPIC: my_connect_offsets
-      STATUS_STORAGE_TOPIC: my_connect_statuses
-      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/kafka/connect/jars"
-
-
-
+      BOOTSTRAP_SERVERS: "kafka:${KAFKA_PORT}"
+      GROUP_ID: "1"
+      CONFIG_STORAGE_TOPIC: "my_connect_configs"
+      OFFSET_STORAGE_TOPIC: "my_connect_offsets"
+      STATUS_STORAGE_TOPIC: "my_connect_statuses"
+      KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars"
 
   connector-registrator:
     build:
