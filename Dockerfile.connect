@@ -1,0 +1,10 @@
+FROM debezium/connect:2.4
+
+ENV CONNECT_PLUGIN_PATH="/usr/share/java,/kafka/connect"
+
+# Tworzenie folderu (opcjonalne jeśli bindujemy wolumen z hosta)
+RUN mkdir -p /kafka/connect
+
+# Pobierz Avro Converter
+RUN curl -sSL https://packages.confluent.io/maven/io/confluent/kafka-connect-avro-converter/7.5.0/kafka-connect-avro-converter-7.5.0.jar \
+    -o /kafka/connect/kafka-connect-avro-converter-7.5.0.jar

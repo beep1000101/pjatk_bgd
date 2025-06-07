@@ -47,16 +47,18 @@ services:
 
 
   connect:
-    image: debezium/connect:2.4
+    build:
+      context: .
+      dockerfile: Dockerfile.connect
     container_name: connect
     depends_on:
       - kafka
       - schema-registry
       - postgres
     ports:
-      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
+      - "8083:8083"
     volumes:
-      - ./jars:/etc/kafka-connect/jars
+      - ./etc/kafka-connect/jars:/kafka/connect
     environment:
       BOOTSTRAP_SERVERS: kafka:${KAFKA_PORT}
       GROUP_ID: 1
@@ -67,7 +69,7 @@ services:
       VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/kafka/connect"
 
 
 
