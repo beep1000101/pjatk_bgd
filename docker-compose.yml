@@ -81,6 +81,14 @@ services:
             http://connect:${CONNECTOR_PORT}/connectors
       "
 
+  kafka-tools:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: kafka-tools
+    depends_on:
+      - kafka
+      - schema-registry
+    # usypiamy kontener, żeby nie wybuchł zaraz po starcie
+    entrypoint: ["sh","-c","tail -f /dev/null"]
 
   generator:
     build: .
