@@ -29,6 +29,7 @@ pytz==2025.1
 requests==2.32.3
 six==1.17.0
 SQLAlchemy==2.0.38
+types-psycopg2==2.9.21.20250516
 types-pytz==2025.1.0.20250318
 typing_extensions==4.12.2
 tzdata==2025.1
