@@ -179,3 +179,5 @@ cython_debug/
 
 # postgres markdown
 postgres_things.md
+
+tree.txt
