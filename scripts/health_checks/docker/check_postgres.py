@@ -5,6 +5,7 @@ import psycopg2
 from dotenv import load_dotenv
 
 from scripts.health_checks.docker.utils.track_health import track_health
+from scripts.health_checks.docker.utils.health_exception import HealthCheckError
 
 load_dotenv()
 
@@ -36,6 +37,7 @@ def check_postgres():
         logger.info("PostgreSQL health check passed.")
     except Exception as e:
         logger.error(f"PostgreSQL health check failed: {e}")
+        raise HealthCheckError(f"PostgreSQL health check failed: {e}")
 
 
 if __name__ == "__main__":

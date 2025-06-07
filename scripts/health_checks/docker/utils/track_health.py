@@ -1,6 +1,8 @@
 from functools import wraps
 from dataclasses import dataclass
 
+from scripts.health_checks.docker.utils.health_exception import HealthCheckError
+
 
 @dataclass
 class HealthStats:
@@ -29,6 +31,8 @@ def track_health():
                 result = func(*args, **kwargs)
                 health_stats.success += 1
                 return result
+            except HealthCheckError as e:
+                health_stats.failure += 1
             except Exception as e:
                 health_stats.failure += 1
                 raise e

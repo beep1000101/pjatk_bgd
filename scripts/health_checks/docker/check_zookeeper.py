@@ -3,6 +3,7 @@ import socket
 from logging import basicConfig, INFO, getLogger
 
 from scripts.health_checks.docker.utils.track_health import track_health
+from scripts.health_checks.docker.utils.health_exception import HealthCheckError
 
 basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = getLogger(__name__)
@@ -19,6 +20,7 @@ def check_zookeeper():
             logger.info("Zookeeper is healthy")
     except Exception as e:
         logger.error(f"Zookeeper health check failed: {e}")
+        raise HealthCheckError(f"Zookeeper health check failed: {e}")
 
 
 if __name__ == "__main__":
