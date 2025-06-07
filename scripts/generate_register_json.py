@@ -22,6 +22,7 @@ def main():
             "table.include.list": os.getenv("DB_TABLE"),
             "plugin.name": "pgoutput",
             "slot.name": os.getenv("DB_SLOT_NAME"),
+            "topic.prefix": os.getenv("DB_TOPIC_PREFIX"),
             "key.converter": "io.confluent.connect.avro.AvroConverter",
             "key.converter.schema.registry.url": os.getenv("SCHEMA_REGISTRY_URL"),
             "value.converter": "io.confluent.connect.avro.AvroConverter",

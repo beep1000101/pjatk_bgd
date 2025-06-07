@@ -1,0 +1,25 @@
+FROM python:3.10-slim
+WORKDIR /app
+
+# zainstaluj curl
+RUN apt-get update \
+ && apt-get install -y curl \
+ && rm -rf /var/lib/apt/lists/*
+
+# jedynie skrypt, bez .env
+COPY scripts/generate_register_json.py ./scripts/
+
+RUN chmod +x scripts/generate_register_json.py
+RUN pip install --no-cache-dir python-dotenv
+
+ENTRYPOINT ["sh","-c", "\
+  echo '[registrator] czekam na Connect…'; \
+  until curl --silent --fail http://connect:${CONNECTOR_PORT}/; do sleep 5; done; \
+  echo '[registrator] Generuję JSON'; \
+  python /app/scripts/generate_register_json.py; \
+  echo '[registrator] Rejestruję connector'; \
+  curl -v -X POST -H 'Content-Type: application/json' \
+    --data @/register-postgres.json \
+    http://connect:${CONNECTOR_PORT}/connectors; \
+"]
+
