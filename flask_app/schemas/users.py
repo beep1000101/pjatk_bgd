@@ -1,5 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from marshmallow import fields
+from marshmallow import fields, validates, ValidationError
 
 from flask_app.app import db
 from database.models.users import User
@@ -19,3 +19,8 @@ class UserSchema(SQLAlchemyAutoSchema):
     name = auto_field(required=True)
     email = fields.Email(required=True)
     city = auto_field()
+
+    @validates("city")
+    def validate_city(self, value, **kwargs):
+        if value is not None and not value.strip():
+            raise ValidationError("City must not be empty or whitespace.")

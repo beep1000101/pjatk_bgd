@@ -131,10 +131,9 @@ def test_create_user_extra_fields(client, user_data):
 def test_create_user_duplicate_email(client, user_data):
     resp1 = client.post("/users", json=user_data)
     resp2 = client.post("/users", json=user_data)
-    # Should fail if email is unique, else allow
     assert resp1.status_code == 201
-    # Accept either 201, 400, or 409 depending on model constraints and error handling
-    assert resp2.status_code in (201, 400, 409)
+    # Always expect 409 for duplicate email
+    assert resp2.status_code == 409
 
 
 def test_get_users_empty(client):
@@ -147,7 +146,7 @@ def test_get_users_empty(client):
 
 def test_get_user_invalid_id(client):
     response = client.get("/users/notanumber")
-    assert response.status_code in (404, 400)
+    assert response.status_code == 404
 
 
 def test_update_user_partial(client, user_data):
@@ -194,12 +193,10 @@ def test_create_user_null_fields(client):
 def test_update_user_null_fields(client, user_data):
     post_resp = client.post("/users", json=user_data)
     user_id = post_resp.get_json()["id"]
-    response = client.put(f"/users/{user_id}", json={"city": None})
-    # Accept either 200 or 400 depending on schema validation
-    assert response.status_code in (200, 400)
-    # If 400, should have error key
-    if response.status_code == 400:
-        assert "error" in response.get_json()
+    response = client.put(f"/users/{user_id}", json={"email": None})
+    # Always expect 400 for null fields
+    assert response.status_code == 400
+    assert "error" in response.get_json()
 
 
 def test_create_user_missing_json(client):
@@ -269,10 +266,9 @@ def test_update_user_whitespace(client, user_data):
     post_resp = client.post("/users", json=user_data)
     user_id = post_resp.get_json()["id"]
     response = client.put(f"/users/{user_id}", json={"city": "   "})
-    # Accept either 200 or 400 depending on schema validation
-    assert response.status_code in (200, 400)
-    if response.status_code == 400:
-        assert "error" in response.get_json()
+    # Always expect 400 for whitespace fields
+    assert response.status_code == 400
+    assert "error" in response.get_json()
 
 
 def test_update_user_long_string(client, user_data):
@@ -301,10 +297,18 @@ def test_update_user_sql_injection(client, user_data):
 
 def test_create_user_boundary_email(client):
     # Minimal valid email
+    data = {"name": "A", "email": "a@b.co", "city": "X"}
+    response = client.post("/users", json=data)
+    # Always expect 201 for minimal valid email
+    assert response.status_code == 201
+
+
+def test_create_invalid_email(client):
+    # Invalid email format
     data = {"name": "A", "email": "a@b.c", "city": "X"}
     response = client.post("/users", json=data)
-    # Accept either 201 or 400 depending on schema/email validation
-    assert response.status_code in (201, 400)
+    assert response.status_code == 400
+    assert "error" in response.get_json()
 
 
 def test_create_user_invalid_email_format(client):
@@ -329,11 +333,10 @@ def test_update_user_email_to_existing(client, user_data):
     resp1 = client.post("/users", json=user_data)
     resp2 = client.post("/users", json=user2)
     id1 = resp1.get_json()["id"]
-    # Try to update user2's email to user1's email
     response = client.put(
         f"/users/{resp2.get_json()['id']}", json={"email": user_data["email"]})
-    # Accept either 200, 400, or 409 depending on unique constraint and error handling
-    assert response.status_code in (200, 400, 409)
+    # Always expect 409 for unique constraint violation
+    assert response.status_code == 409
 
 
 def test_get_user_with_leading_trailing_spaces(client, user_data):
