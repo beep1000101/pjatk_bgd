@@ -2,9 +2,5 @@ FROM confluentinc/cp-kafka:7.5.0
 
 USER root
 
-# Instalujemy dodatkowe narzędzia z pakietu
-RUN confluent-hub install --no-prompt confluentinc/kafka-connect-avro-converter:7.5.0 && \
-    chmod -R a+rwX /usr/share/java
-
-# Upewniamy się, że PATH zawiera potrzebne narzędzia (są w image)
+# Tylko upewnij się, że masz dostęp do narzędzi Kafka CLI
 ENV PATH="$PATH:/usr/bin"
