@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from marshmallow import ValidationError
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, IntegrityError
 from werkzeug.exceptions import HTTPException, NotFound, MethodNotAllowed, InternalServerError
 
 
@@ -104,3 +104,10 @@ def register_error_handlers(app):
             "error": "Internal server error.",
             "path": request.path
         }), 500
+
+    @app.errorhandler(IntegrityError)
+    def handle_integrity_error(err):
+        return jsonify({
+            "error": "Integrity error occurred. Please check your data.",
+            "details": str(err.orig)
+        }), 409

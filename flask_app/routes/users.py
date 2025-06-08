@@ -5,6 +5,7 @@ from database.models.users import User
 from flask_app.app import db
 from flask_app.schemas.users import UserSchema
 from flask_app.routes.errors import APIError
+from flask_app.routes.utils.decorators import transactional
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -13,6 +14,7 @@ multiple_users_schema = UserSchema(many=True)
 
 
 @users_bp.post("")
+@transactional("User already exists or violates a constraint.")
 def create_user():
     data = request.get_json()
     errors = single_user_schema.validate(data)
@@ -20,7 +22,7 @@ def create_user():
         raise APIError(errors, 400)
     new_user = single_user_schema.load(data)
     db.session.add(new_user)
-    db.session.commit()
+    db.session.flush()
     db.session.refresh(new_user)
     return jsonify(single_user_schema.dump(new_user)), 201
 
@@ -43,6 +45,7 @@ def get_user(user_id):
 
 
 @users_bp.put("/<int:user_id>")
+@transactional("User update violates a constraint.")
 def update_user(user_id):
     user = db.session.execute(
         select(User).where(User.id == user_id)
@@ -56,11 +59,11 @@ def update_user(user_id):
     updated_user = single_user_schema.load(
         data, instance=user, partial=True
     )
-    db.session.commit()
     return jsonify(single_user_schema.dump(updated_user)), 200
 
 
 @users_bp.delete("/<int:user_id>")
+@transactional("User delete violates a constraint.")
 def delete_user(user_id):
     user = db.session.execute(
         select(User).where(User.id == user_id)
@@ -68,5 +71,4 @@ def delete_user(user_id):
     if user is None:
         raise APIError("User not found", 404)
     db.session.delete(user)
-    db.session.commit()
     return jsonify({"message": "User deleted"}), 200

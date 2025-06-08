@@ -6,6 +6,7 @@ from database.models.orders import Order
 from flask_app.app import db
 from flask_app.schemas.orders import OrderSchema
 from flask_app.routes.errors import APIError
+from flask_app.routes.utils.decorators import transactional
 
 orders_bp = Blueprint("orders", __name__, url_prefix="/orders")
 
@@ -14,6 +15,7 @@ multiple_orders_schema = OrderSchema(many=True)
 
 
 @orders_bp.post("/")
+@transactional("Order already exists or violates a constraint.")
 def create_order():
     # Expect JSON body with order fields
     data = request.get_json()
@@ -23,8 +25,8 @@ def create_order():
 
     new_order = signle_order_schema.load(data)
     db.session.add(new_order)
-    db.session.commit()
-    db.session.refresh(new_order)  # Refresh to get the ID and other defaults
+    db.session.flush()  # Use flush to get ID before commit (commit is handled by decorator)
+    db.session.refresh(new_order)
     return jsonify(signle_order_schema.dump(new_order)), 201
 
 
@@ -50,6 +52,7 @@ def get_order(order_id):
 
 
 @orders_bp.put("/<int:order_id>")
+@transactional("Order update violates a constraint.")
 def update_order(order_id):
     order = db.session.execute(
         select(Order).where(Order.id == order_id)
@@ -62,11 +65,12 @@ def update_order(order_id):
         raise APIError(errors, 400)
     updated_order = signle_order_schema.load(
         data, instance=order, partial=True)
-    db.session.commit()
+    # No need to call commit, handled by decorator
     return jsonify(signle_order_schema.dump(updated_order)), 200
 
 
 @orders_bp.delete("/<int:order_id>")
+@transactional("Order delete violates a constraint.")
 def delete_order(order_id):
     order = db.session.execute(
         select(Order).where(Order.id == order_id)
@@ -74,5 +78,5 @@ def delete_order(order_id):
     if order is None:
         raise APIError("Order not found", 404)
     db.session.delete(order)
-    db.session.commit()
+    # No need to call commit, handled by decorator
     return jsonify({"message": "Order deleted"}), 200
