@@ -34,7 +34,6 @@
    python3 scripts/health_checks/docker/check_all.py
    ```
 
-
 # Mini Data Platform – README
 
 ## 1. Opis projektu
@@ -42,7 +41,7 @@
 Projekt dostarcza kontenerową mini platformę danych, uruchamianą w Dockerze, ukazując kompletny pipeline od generacji i symulacji danych aż po ich ekspozycję i przetwarzanie:
 
 1. **Symulacja procesów biznesowych** – skrypty Python 3.13 czytające pliki CSV z katalogu `data/`.
-2. **Flask API** – aplikacja we Flask (`flask_app/`) udostępniająca REST-owe endpointy do odczytu danych.
+2. **Flask API** – aplikacja we Flask (`flask_app/`) udostępniająca REST-owe endpointy do odczytu i modyfikacji danych. Zastosowano wzorzec application factory, Flask-SQLAlchemy do ORM, Flask-Marshmallow do walidacji i serializacji danych oraz niestandardowe dekoratory (`transactional`) do automatycznego zarządzania transakcjami. Konfiguracja połączenia do bazy jest ładowana z pliku `.env` (dotenv), co wymagało dostrojenia ścieżek i zmiennych środowiskowych.
 3. **PostgreSQL** – baza danych z włączoną replikacją logiczną (skrypty w `database/`).
 4. **Debezium Connector** – kontener Kafka Connect nasłuchujący zmian w PostgreSQL i wysyłający je do Kafki.
 5. **Kafka Broker** – system kolejkowania wiadomości w formacie **JSON** (AVRO nie został wdrożony, JSON działa stabilnie i upraszcza konfigurację).
@@ -81,7 +80,7 @@ Projekt dostarcza kontenerową mini platformę danych, uruchamianą w Dockerze, 
 2. Zbuduj i uruchom usługi:
 
    ```bash
-   docker-compose up --build
+   docker-compose up --build -d
    ```
 3. Zweryfikuj działające kontenery:
 
