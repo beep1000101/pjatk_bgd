@@ -25,7 +25,8 @@ def create_app(config_name):
         The configured Flask application instance.
     """
     # import routes
-    # from flask_app.routes.pokemon import pokemon_routes
+    from flask_app.routes.orders import orders_bp
+    from flask_app.routes.users import users_bp
     # import error handlers
     # from flask_app.routes.errors import register_error_handlers
     app = Flask(__name__)
@@ -35,7 +36,8 @@ def create_app(config_name):
     ma.init_app(app)
 
     # register the routes
-    # app.register_blueprint(pokemon_routes)
+    app.register_blueprint(orders_bp)
+    app.register_blueprint(users_bp)
     # register the error handlers
     # register_error_handlers(app=app)
 

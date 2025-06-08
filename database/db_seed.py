@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 
 from database.models.base import Base
+from database.models.users import User
+from database.models.orders import Order
 
 DATA_PATH: Final[Path] = Path(__file__).parent / 'data'
 
@@ -22,7 +24,30 @@ def create_tables(bind):
 
 
 def seed_data(session):
-    ...
+    """
+    Seed the database with initial data.
+    """
+    # Example users
+    users = [
+        User(name="Alice", email="alice@example.com", city="Wonderland"),
+        User(name="Bob", email="bob@example.com", city="Builderland"),
+        User(name="Charlie", email="charlie@example.com",
+             city="Chocolate Factory"),
+    ]
+    session.add_all(users)
+    session.commit()
+
+    # Example orders (assuming customer_id, product, quantity, total_price, order_date)
+    orders = [
+        Order(customer_id=users[0].id, product="Book",
+              quantity=2, total_price=40.0),
+        Order(customer_id=users[1].id, product="Hammer",
+              quantity=1, total_price=15.5),
+        Order(customer_id=users[2].id, product="Chocolate",
+              quantity=5, total_price=25.0),
+    ]
+    session.add_all(orders)
+    session.commit()
 
 
 # Example usage (not for import!):
