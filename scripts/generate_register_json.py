@@ -23,10 +23,10 @@ def main():
             "plugin.name": "pgoutput",
             "slot.name": os.getenv("DB_SLOT_NAME"),
             "topic.prefix": os.getenv("DB_TOPIC_PREFIX"),
-            "key.converter": "org.apache.kafka.connect.json.JsonConverter",
-            "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-            "key.converter.schemas.enable": "false",
-            "value.converter.schemas.enable": "false"
+            "key.converter": "io.confluent.connect.avro.AvroConverter",
+            "value.converter": "io.confluent.connect.avro.AvroConverter",
+            "key.converter.schema.registry.url": os.getenv("SCHEMA_REGISTRY_URL"),
+            "value.converter.schema.registry.url": os.getenv("SCHEMA_REGISTRY_URL")
         }
     }
     try:
