@@ -56,3 +56,13 @@ def seed_data(session):
 # create_tables(engine)
 # session = SessionLocal()
 # seed_data(session)
+
+if __name__ == "__main__":
+    from database.db_init import get_engine_and_session
+    from flask_app.config import get_flask_config
+    config = get_flask_config()
+    engine, SessionLocal = get_engine_and_session(config)
+    create_tables(engine)
+    session = SessionLocal()
+    seed_data(session)
+    session.close()

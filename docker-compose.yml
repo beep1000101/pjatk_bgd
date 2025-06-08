@@ -13,6 +13,30 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
+  web:
+    container_name: flask-app
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    # load your .env into this container
+    env_file:
+      - .env
+    # override or add any needed vars here
+    environment:
+      PYTHONPATH: /app
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      FLASK_PORT: ${FLASK_PORT}
+      FLASK_ENV: ${FLASK_ENV}
+      FLASK_HOST: ${FLASK_HOST}
+    ports:
+      - "${FLASK_PORT}:${FLASK_PORT}"
+    depends_on:
+      - postgres
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
