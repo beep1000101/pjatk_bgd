@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 from database.db_init import engine, SessionLocal
-from flask.models.base import Base
+from database.models.base import Base
 
 DATA_PATH: Final[Path] = Path(__file__).parent / 'data'
 
