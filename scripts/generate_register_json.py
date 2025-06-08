@@ -13,16 +13,16 @@ def main():
         "name": "postgres-connector",
         "config": {
             "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-            "database.hostname": os.getenv("DB_HOST"),
-            "database.port": os.getenv("DB_PORT"),
-            "database.user": os.getenv("DB_USER"),
-            "database.password": os.getenv("DB_PASSWORD"),
-            "database.dbname": os.getenv("DB_NAME"),
-            "database.server.name": os.getenv("DB_SERVER_NAME"),
-            "table.include.list": os.getenv("DB_TABLE"),
+            "database.hostname": os.getenv("DB_HOST", "postgres"),
+            "database.port": os.getenv("DB_PORT", "5432"),
+            "database.user": os.getenv("DB_USER", "postgres"),
+            "database.password": os.getenv("DB_PASSWORD", "postgres"),
+            "database.dbname": os.getenv("DB_NAME", "mydb"),
+            "database.server.name": os.getenv("DB_SERVER_NAME", "mydb_server"),
+            "table.include.list": os.getenv("DB_TABLE", "public.orders,public.users"),
             "plugin.name": "pgoutput",
-            "slot.name": os.getenv("DB_SLOT_NAME"),
-            "topic.prefix": os.getenv("DB_TOPIC_PREFIX"),
+            "slot.name": os.getenv("DB_SLOT_NAME", "debezium_slot"),
+            "topic.prefix": os.getenv("DB_TOPIC_PREFIX", "dbserver1"),
             "key.converter": "org.apache.kafka.connect.json.JsonConverter",
             "value.converter": "org.apache.kafka.connect.json.JsonConverter",
             "key.converter.schemas.enable": "false",
@@ -30,7 +30,8 @@ def main():
         }
     }
     try:
-        root_path = Path(os.getenv("ROOT_PATH"))
+        root_path = Path(os.getenv("ROOT_PATH", str(
+            Path(__file__).parent.parent.parent)))
     except TypeError:
         root_path = Path(__file__).parent.parent.parent
     except KeyError:

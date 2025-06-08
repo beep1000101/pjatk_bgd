@@ -3,9 +3,9 @@ services:
     image: debezium/postgres:13
     container_name: postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-mydb}
       PGDATA: /var/lib/postgresql/data/pgdata
     command: >
       postgres
@@ -14,7 +14,7 @@ services:
         -c max_wal_senders=4
         -c max_worker_processes=4
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}"
     volumes:
       # 1) Init-script wykona się tylko przy pierwszym starcie (pusty wolumen pgdata)
       - ./database/initdb:/docker-entrypoint-initdb.d:ro,z
@@ -31,26 +31,42 @@ services:
       - .env
     environment:
       PYTHONPATH: /app
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      FLASK_PORT: ${FLASK_PORT}
-      FLASK_ENV: ${FLASK_ENV}
-      FLASK_HOST: ${FLASK_HOST}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-mydb}
+      FLASK_PORT: ${FLASK_PORT:-5000}
+      FLASK_ENV: ${FLASK_ENV:-production}
+      FLASK_HOST: ${FLASK_HOST:-0.0.0.0}
     ports:
-      - "${FLASK_PORT}:${FLASK_PORT}"
+      - "${FLASK_PORT:-5000}:${FLASK_PORT:-5000}"
     depends_on:
       - postgres
+    
+  spark:
+    image: bitnami/spark:3.4.1
+    container_name: spark
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+    volumes:
+      - ./spark_app:/opt/spark-app
+    entrypoint: [ "/opt/bitnami/scripts/spark/entrypoint.sh", "/opt/bitnami/scripts/spark/run.sh" ]
+
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     environment:
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT:-2181}
     ports:
-      - "${ZOOKEEPER_PORT}:${ZOOKEEPER_PORT}"
+      - "${ZOOKEEPER_PORT:-2181}:${ZOOKEEPER_PORT:-2181}"
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -59,11 +75,11 @@ services:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT:-2181}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_PORT:-9092}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "${KAFKA_PORT}:${KAFKA_PORT}"
+      - "${KAFKA_PORT:-9092}:${KAFKA_PORT:-9092}"
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.5.0
@@ -71,10 +87,10 @@ services:
     depends_on:
       - kafka
     environment:
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:${KAFKA_PORT}
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:${KAFKA_PORT:-9092}
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
     ports:
-      - "${SCHEMA_REGISTRY_PORT}:${SCHEMA_REGISTRY_PORT}"
+      - "${SCHEMA_REGISTRY_PORT:-8081}:${SCHEMA_REGISTRY_PORT:-8081}"
 
   connect:
     build:
@@ -86,17 +102,17 @@ services:
       - schema-registry
       - postgres
     ports:
-      - "${CONNECTOR_PORT}:${CONNECTOR_PORT}"
+      - "${CONNECTOR_PORT:-8083}:${CONNECTOR_PORT:-8083}"
     environment:
-      BOOTSTRAP_SERVERS: "kafka:${KAFKA_PORT}"
+      BOOTSTRAP_SERVERS: "kafka:${KAFKA_PORT:-9092}"
       GROUP_ID: "1"
       CONFIG_STORAGE_TOPIC: "my_connect_configs"
       OFFSET_STORAGE_TOPIC: "my_connect_offsets"
       STATUS_STORAGE_TOPIC: "my_connect_statuses"
       KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      # CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
-      # CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT}"
+      # CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT:-8081}"
+      # CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:${SCHEMA_REGISTRY_PORT:-8081}"
       CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_PLUGIN_PATH: "/kafka/connect,/usr/share/java,/etc/kafka-connect/jars"
@@ -113,17 +129,17 @@ services:
     depends_on:
       - connect
     environment:
-      CONNECTOR_PORT: ${CONNECTOR_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_SERVER_NAME: ${DB_SERVER_NAME}
-      DB_TABLE: ${DB_TABLE}
-      DB_SLOT_NAME: ${DB_SLOT_NAME}
-      DB_TOPIC_PREFIX: ${DB_TOPIC_PREFIX}
-      SCHEMA_REGISTRY_URL: ${SCHEMA_REGISTRY_URL}
+      CONNECTOR_PORT: ${CONNECTOR_PORT:-8083}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_NAME: ${DB_NAME:-mydb}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_SERVER_NAME: ${DB_SERVER_NAME:-mydb_server}
+      DB_TABLE: ${DB_TABLE:-public.orders,public.users}
+      DB_SLOT_NAME: ${DB_SLOT_NAME:-debezium_slot}
+      DB_TOPIC_PREFIX: ${DB_TOPIC_PREFIX:-dbserver1}
+      SCHEMA_REGISTRY_URL: ${SCHEMA_REGISTRY_URL:-http://schema-registry:8081}
 
   kafka-tools:
     # image: confluentinc/cp-schema-registry:7.5.0
@@ -142,11 +158,11 @@ services:
     depends_on:
       - postgres
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-mydb}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
     command: ["python", "main.py"]
 
 # Definicja nazwanego wolumenu (tylko ten jeden!)

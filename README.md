@@ -1,85 +1,110 @@
-# pjatk_bgd
+# Mini Data Platform with Spark
 
-This project is a data processing pipeline for managing user and order data. It uses Python, PostgreSQL, and Docker to load, process, and store data from CSV files into a relational database. The project is designed for educational purposes as part of a lab at PJATK.
+## Overview
 
-## Features
+This project simulates a business process, streams change data via Debezium+Kafka, processes events with Spark Structured Streaming, and stores results in MinIO as Delta Lake tables.
 
-- Reads user and order data from CSV files.
-- Merges and processes the data using pandas.
-- Stores the data in a PostgreSQL database using SQLAlchemy.
-- Supports bulk insertion of data for efficiency.
-- Fully containerized using Docker and Docker Compose.
+## Architecture
 
-## Prerequisites
+* **PostgreSQL**: source database with two tables (`users`, `orders`)
+* **Debezium**: captures CDC from PostgreSQL into Kafka topics
+* **Kafka**: message broker holding CDC events
+* **Spark**: processes Kafka streams, transforms data, writes to Delta format
+* **MinIO**: S3-compatible storage for Delta files
+* **Flask API**: serves processed data via HTTP
 
-- Python 3.12
-- Docker and Docker Compose
-- Fedora 41 (tested environment)
+## Verifying Spark
 
-## Installation
+To ensure Spark is working:
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd pjatk_bgd
+1. **Start Spark Master & Worker**:
+
+   ```sh
+   docker-compose up -d spark-master spark-worker
+   ```
+2. **Submit a Test Job**:
+
+   ```sh
+   docker exec -it spark-master spark-submit \
+     --master spark://spark-master:7077 \
+     /opt/app/scripts/spark_test.py
+   ```
+3. **Check Logs**:
+
+   ```sh
+   docker logs -f spark-master
    ```
 
-2. Install Python dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+   You should see your job start, tasks executed, and completion messages.
+4. **Web UI**:
+   Visit `http://localhost:8080` to inspect active jobs and executors.
 
-3. Set up the `.env` file:
-   Create a `.env` file in the root directory with the following structure. **Keep this file secret and do not share it publicly.**
-   ```
-   DB_USERNAME=<your_database_username>
-   DB_PASSWORD=<your_database_password>
-   DB_HOST=<your_database_host>
-   DB_NAME=<your_database_name>
-   DB_PORT=<your_database_port>
-   ```
+## Example Spark Script
 
-4. Configure your local PostgreSQL database:
-   Ensure your local PostgreSQL instance is running and configured to accept connections with the username and password specified in the `.env` file. You may need to update your `pg_hba.conf` file to allow password authentication.
+Place under `scripts/spark_test.py`:
 
-5. Build and start the Docker containers:
-   ```bash
-   docker-compose up --build
-   ```
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("TestSpark") \
+    .getOrCreate()
+
+data = spark.range(0, 100)
+data_count = data.count()
+print(f"Counted {data_count} records in Spark test.")
+
+spark.stop()
+```
+
+## Integrating in Project
+
+* Add streaming logic in `scripts/`:
+
+  * Read from Kafka:
+
+    ```python
+    spark.readStream.format("kafka") \
+         ...
+    ```
+  * Transform and write to MinIO/Delta:
+
+    ```python
+    df.writeStream \
+      .format("delta") \
+      .option("checkpointLocation", "/delta/checkpoint") \
+      .start("s3a://minio/bucket/path")
+    ```
 
 ## Usage
 
-1. Place your user and order CSV files in the appropriate directories:
-   - User data: `data/users/`
-   - Order data: `data/orders/`
+1. Build & run services:
 
-2. Run the application:
-   The application will automatically process the data and insert it into the PostgreSQL database when the container starts.
+   ```sh
+   ```
 
-3. Access the PostgreSQL database:
-   The database is exposed on port `5432`. You can connect using any PostgreSQL client with the credentials specified in the `.env` file.
+docker-compose up --build -d
 
-## Project Structure
+````
+2. Seed database:
+   ```sh
+python database/db_seed.py
+````
 
-- `__main__.py`: Entry point for the application.
-- `python/read.py`: Functions for reading and merging CSV files.
-- `python/postgres.py`: Database models and utility functions for interacting with PostgreSQL.
-- `data/`: Directory containing user and order CSV files.
-- `docker-compose.yml`: Docker Compose configuration.
-- `Dockerfile`: Docker image definition.
+3. Register Debezium connector:
 
-## Environment Information
+   ```sh
+   ```
 
-- Python dependencies are listed in `requirements.txt`.
-- The project uses the following key libraries:
-  - `pandas` for data processing.
-  - `SQLAlchemy` for database interaction.
-  - `psycopg2-binary` for PostgreSQL connection.
+scripts/generate\_register\_json.py &&&#x20;
+curl -X POST -H "Content-Type: application/json"&#x20;
+\--data @register-postgres.json [http://localhost:8083/connectors](http://localhost:8083/connectors)
 
-## Testing
+```
+4. Submit Spark streaming job (as above).
 
-The project was tested on Fedora 41 with Python 3.12 and a local PostgreSQL database. Ensure your PostgreSQL instance is properly configured for username and password validation to match the `.env` file.
+## Contributing
+- Write unit tests for Spark logic under `tests/`
+- Update this README with new commands and architecture changes
 
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+```

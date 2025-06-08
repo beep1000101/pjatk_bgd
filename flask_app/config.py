@@ -24,7 +24,7 @@ class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
-    host = os.getenv('FLASK_HOST', '127.0.0.1')
+    host = os.getenv('FLASK_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_PORT', 5000))
 
 
@@ -42,7 +42,7 @@ class DevelopmentConfig(BaseConfig):
         The URI for the SQLite database.
     """
     debug = True
-    DB_NAME = os.getenv('DB_NAME')
+    DB_NAME = os.getenv('DB_NAME', 'mydb')
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{basedir / DB_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
@@ -67,11 +67,11 @@ class ProductionConfig(BaseConfig):
     Configuration for production using a POSTGRES database.
     """
     debug = False
-    user = os.getenv('DB_USER')
-    password = os.getenv('DB_PASSWORD')
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    DB_NAME = os.getenv('DB_NAME')
+    user = os.getenv('DB_USER', 'postgres')
+    password = os.getenv('DB_PASSWORD', 'postgres')
+    DB_HOST = os.getenv('DB_HOST', 'postgres')
+    DB_PORT = os.getenv('DB_PORT', '5432')
+    DB_NAME = os.getenv('DB_NAME', 'mydb')
     if not all([user, password, DB_HOST, DB_PORT, DB_NAME]):
         raise ValueError(
             "Database configuration environment variables are not set. "

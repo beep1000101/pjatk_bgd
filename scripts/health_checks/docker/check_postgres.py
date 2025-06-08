@@ -26,7 +26,7 @@ def check_postgres():
         port = os.getenv("POSTGRES_PORT", 5432)
         logger.info(f"Connecting to PostgreSQL at {host}:{port}")
         conn = psycopg2.connect(
-            dbname=os.getenv("POSTGRES_DB", "postgres"),
+            dbname=os.getenv("POSTGRES_DB", "mydb"),
             user=os.getenv("POSTGRES_USER", "postgres"),
             password=os.getenv("POSTGRES_PASSWORD", "postgres"),
             host=os.getenv("POSTGRES_HOST", "localhost"),
