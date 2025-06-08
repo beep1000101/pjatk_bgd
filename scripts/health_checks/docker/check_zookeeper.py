@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 @track_health()
 def check_zookeeper():
     logger.info("Checking Zookeeper health...")
-    host = os.getenv("ZOOKEEPER_HOST", "zookeeper")
+    host = os.getenv("ZOOKEEPER_HOST", "localhost")
     port = int(os.getenv("ZOOKEEPER_PORT", 2181))
     logger.info(f"Connecting to Zookeeper at {host}:{port}")
     try:

@@ -46,6 +46,14 @@ for i in "${!PRODUCTS[@]}"; do
   ORDERS+=("{\"customer_id\":${USER_IDS[0]},\"product\":\"${PRODUCTS[$i]}\",\"quantity\":${QUANTITIES[$i]}}")
 done
 
+for payload in "${ORDERS[@]}"; do
+  resp=$(curl -s -X POST "$API_URL/orders" \
+    -H "Content-Type: application/json" \
+    -d "$payload")
+  order_id=$(echo "$resp" | jq -r '.id')
+  echo "Order created: id=$order_id, data=$payload"
+done
+
 echo
 echo "=== Gotowe! ==="
 echo "Możesz teraz zweryfikować dane np. poprzez:"

@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 @track_health()
 def check_schema_registry():
     logger.info("Checking Schema Registry health...")
-    url = f"http://{os.getenv('SCHEMA_REGISTRY_HOST', 'schema-registry')}:{os.getenv('SCHEMA_REGISTRY_PORT', 8081)}/subjects"
+    url = f"http://{os.getenv('SCHEMA_REGISTRY_HOST', 'localhost')}:{os.getenv('SCHEMA_REGISTRY_PORT', 8081)}/subjects"
     logger.info(f"Connecting to Schema Registry at {url}")
     try:
         r = requests.get(url, timeout=3)
