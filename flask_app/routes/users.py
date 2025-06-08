@@ -4,6 +4,7 @@ from sqlalchemy import select
 from database.models.users import User
 from flask_app.app import db
 from flask_app.schemas.users import UserSchema
+from flask_app.routes.errors import APIError
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -16,7 +17,7 @@ def create_user():
     data = request.get_json()
     errors = single_user_schema.validate(data)
     if errors:
-        return jsonify(errors), 400
+        raise APIError(errors, 400)
     new_user = single_user_schema.load(data)
     db.session.add(new_user)
     db.session.commit()
@@ -37,7 +38,7 @@ def get_user(user_id):
         select(User).where(User.id == user_id)
     ).scalar_one_or_none()
     if user is None:
-        return jsonify({"message": "User not found"}), 404
+        raise APIError("User not found", 404)
     return jsonify(single_user_schema.dump(user)), 200
 
 
@@ -47,11 +48,11 @@ def update_user(user_id):
         select(User).where(User.id == user_id)
     ).scalar_one_or_none()
     if user is None:
-        return jsonify({"message": "User not found"}), 404
+        raise APIError("User not found", 404)
     data = request.get_json()
     errors = single_user_schema.validate(data, partial=True)
     if errors:
-        return jsonify(errors), 400
+        raise APIError(errors, 400)
     updated_user = single_user_schema.load(
         data, instance=user, partial=True
     )
@@ -65,7 +66,7 @@ def delete_user(user_id):
         select(User).where(User.id == user_id)
     ).scalar_one_or_none()
     if user is None:
-        return jsonify({"message": "User not found"}), 404
+        raise APIError("User not found", 404)
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted"}), 200

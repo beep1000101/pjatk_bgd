@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
+from flask_app.routes.errors import register_error_handlers
+
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -39,7 +41,7 @@ def create_app(config_name):
     app.register_blueprint(orders_bp)
     app.register_blueprint(users_bp)
     # register the error handlers
-    # register_error_handlers(app=app)
+    register_error_handlers(app=app)
 
     @app.route('/')
     def hello_world():

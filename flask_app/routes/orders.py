@@ -5,6 +5,7 @@ from database.models.orders import Order
 
 from flask_app.app import db
 from flask_app.schemas.orders import OrderSchema
+from flask_app.routes.errors import APIError
 
 orders_bp = Blueprint("orders", __name__, url_prefix="/orders")
 
@@ -18,7 +19,7 @@ def create_order():
     data = request.get_json()
     errors = signle_order_schema.validate(data)
     if errors:
-        return jsonify(errors), 400
+        raise APIError(errors, 400)
 
     new_order = signle_order_schema.load(data)
     db.session.add(new_order)
@@ -44,7 +45,7 @@ def get_order(order_id):
         select(Order).where(Order.id == order_id)
     ).scalar_one_or_none()
     if order is None:
-        return jsonify({"message": "Order not found"}), 404
+        raise APIError("Order not found", 404)
     return jsonify(signle_order_schema.dump(order)), 200
 
 
@@ -54,11 +55,11 @@ def update_order(order_id):
         select(Order).where(Order.id == order_id)
     ).scalar_one_or_none()
     if order is None:
-        return jsonify({"message": "Order not found"}), 404
+        raise APIError("Order not found", 404)
     data = request.get_json()
     errors = signle_order_schema.validate(data, partial=True)
     if errors:
-        return jsonify(errors), 400
+        raise APIError(errors, 400)
     updated_order = signle_order_schema.load(
         data, instance=order, partial=True)
     db.session.commit()
@@ -71,7 +72,7 @@ def delete_order(order_id):
         select(Order).where(Order.id == order_id)
     ).scalar_one_or_none()
     if order is None:
-        return jsonify({"message": "Order not found"}), 404
+        raise APIError("Order not found", 404)
     db.session.delete(order)
     db.session.commit()
     return jsonify({"message": "Order deleted"}), 200
