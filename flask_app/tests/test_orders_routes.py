@@ -60,14 +60,14 @@ def test_get_orders(client, order_data):
 def test_get_order(client, order_data):
     post_resp = client.post("/orders/", json=order_data)
     order_id = post_resp.get_json()["id"]
-    response = client.get(f"/orders/{order_id}/")
+    response = client.get(f"/orders/{order_id}")
     assert response.status_code == 200
     data = response.get_json()
     assert data["id"] == order_id
 
 
 def test_get_order_not_found(client):
-    response = client.get("/orders/99999/")
+    response = client.get("/orders/99999")
     assert response.status_code == 404
 
 
@@ -75,7 +75,7 @@ def test_update_order(client, order_data):
     post_resp = client.post("/orders/", json=order_data)
     order_id = post_resp.get_json()["id"]
     update = {"product": "Gadget"}
-    response = client.put(f"/orders/{order_id}/", json=update)
+    response = client.put(f"/orders/{order_id}", json=update)
     assert response.status_code == 200
     assert response.get_json()["product"] == "Gadget"
 
@@ -89,20 +89,20 @@ def test_update_order_invalid(client, order_data):
     post_resp = client.post("/orders/", json=order_data)
     order_id = post_resp.get_json()["id"]
     # Send invalid data: missing required field
-    response = client.put(f"/orders/{order_id}/", json={"customer_id": None})
+    response = client.put(f"/orders/{order_id}", json={"customer_id": None})
     assert response.status_code == 400
 
 
 def test_delete_order(client, order_data):
     post_resp = client.post("/orders/", json=order_data)
     order_id = post_resp.get_json()["id"]
-    response = client.delete(f"/orders/{order_id}/")
+    response = client.delete(f"/orders/{order_id}")
     assert response.status_code == 200
     assert response.get_json()["message"] == "Order deleted"
-    get_resp = client.get(f"/orders/{order_id}/")
+    get_resp = client.get(f"/orders/{order_id}")
     assert get_resp.status_code == 404
 
 
 def test_delete_order_not_found(client):
-    response = client.delete("/orders/99999/")
+    response = client.delete("/orders/99999")
     assert response.status_code == 404
