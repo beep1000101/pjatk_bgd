@@ -1,42 +1,22 @@
-from pathlib import Path
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from flask_app.config import get_flask_config
 
-def init_db(testing=False):
+
+def get_engine_and_session(config=None):
     """
-    Initialize the database engine and session factory.
-
-    Parameters
-    ----------
-    testing : bool, optional
-        If True, use an in-memory SQLite database for testing. Defaults to False.
-
-    Returns
-    -------
-    tuple
-        A tuple containing the database engine and session factory.
-
-    Notes
-    -----
-    This function sets up the database connection and session factory. It uses
-    an in-memory database for testing or a file-based SQLite database for production.
-
-    Examples
-    --------
-    >>> engine, SessionLocal = init_db(testing=True)
+    Create SQLAlchemy engine and sessionmaker from a database URI.
     """
-    if testing:
-        database_url = 'sqlite:///:memory:'
-    else:
-        stem = Path(__file__).parent.name
-        database_url = f'sqlite:///{stem}/pokemon.db'
-
-    engine = create_engine(database_url)
+    if config is None:
+        config = get_flask_config()
+    database_uri = config.SQLALCHEMY_DATABASE_URI
+    engine = create_engine(database_uri)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return engine, SessionLocal
 
 
-# Initialize the database based on the TESTING flag
-engine, SessionLocal = init_db(testing=False)
+# Usage:
+# In your Flask app, after app.config is loaded, do:
+# from database.db_init import get_engine_and_session
+# engine, SessionLocal = get_engine_and_session(app.config["SQLALCHEMY_DATABASE_URI"])

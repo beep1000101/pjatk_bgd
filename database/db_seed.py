@@ -4,29 +4,30 @@ from typing import Final
 import pandas as pd
 import numpy as np
 
-from database.db_init import engine, SessionLocal
 from database.models.base import Base
 
 DATA_PATH: Final[Path] = Path(__file__).parent / 'data'
 
 
-def create_tables(bind=None):
+def create_tables(bind):
     """
     Create all tables defined on Base.metadata.
 
     Parameters
     ----------
-    bind : Engine or Connection, optional
-        The database bind to use. Defaults to the top‐level engine.
+    bind : Engine or Connection
+        The database bind to use.
     """
-    bind = bind or engine
     Base.metadata.create_all(bind)
 
 
-def seed_data(session=None):
+def seed_data(session):
     ...
 
 
-if __name__ == "__main__":
-    create_tables()
-    seed_data()
+# Example usage (not for import!):
+# from database.db_init import get_engine_and_session
+# engine, SessionLocal = get_engine_and_session(database_uri)
+# create_tables(engine)
+# session = SessionLocal()
+# seed_data(session)

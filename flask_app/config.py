@@ -105,7 +105,7 @@ configurations = {
 }
 
 
-def get_flask_config():
+def get_flask_config(current_config=None):
     """
     Get the current Flask configuration based on the FLASK_ENV environment variable.
 
@@ -119,7 +119,8 @@ def get_flask_config():
     ValueError
         If FLASK_ENV is not set or is invalid.
     """
-    current_config = os.getenv('FLASK_ENV')
+    if current_config is None:
+        current_config = os.getenv('FLASK_ENV')
 
     if current_config is None:
         raise ValueError(
