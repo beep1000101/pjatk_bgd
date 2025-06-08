@@ -12,6 +12,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # 3. Copy only the Flask application and database code
+COPY data/ ./data
 COPY flask_app/ ./flask_app
 COPY database/ ./database
 COPY main.py .
