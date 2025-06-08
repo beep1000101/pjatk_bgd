@@ -1,4 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from marshmallow import fields
 
 from flask_app.app import db
 from database.models.users import User
@@ -16,5 +17,5 @@ class UserSchema(SQLAlchemyAutoSchema):
 
     id = auto_field(dump_only=True)
     name = auto_field(required=True)
-    email = auto_field(required=True)
+    email = fields.Email(required=True)
     city = auto_field()

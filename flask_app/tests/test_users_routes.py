@@ -1,4 +1,5 @@
 import pytest
+import uuid
 
 from flask_app.app import create_app, db
 from database.db_seed import seed_data, create_tables
@@ -6,10 +7,11 @@ from database.db_seed import seed_data, create_tables
 from flask_app.config import TestingConfig
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def test_app():
     app = create_app(TestingConfig)
     with app.app_context():
+        db.drop_all()
         create_tables(bind=db.session.get_bind())
         seed_data(session=db.session)
     yield app
@@ -24,7 +26,9 @@ def client(test_app):
 
 @pytest.fixture
 def user_data():
-    return {"name": "Alice", "email": "alice@example.com", "city": "Wonderland"}
+    # Ensure unique email for each test run
+    unique_email = f"alice_{uuid.uuid4().hex}@example.com"
+    return {"name": "Alice", "email": unique_email, "city": "Wonderland"}
 
 
 def test_create_user(client, user_data):

@@ -12,7 +12,7 @@ signle_order_schema = OrderSchema()
 multiple_orders_schema = OrderSchema(many=True)
 
 
-@orders_bp.route("/", methods=["POST"])
+@orders_bp.post("/")
 def create_order():
     # Expect JSON body with order fields
     data = request.get_json()
@@ -27,7 +27,7 @@ def create_order():
     return jsonify(signle_order_schema.dump(new_order)), 201
 
 
-@orders_bp.route("/", methods=["GET"])
+@orders_bp.get("/")
 def get_orders():
     orders_selection_statement = select(Order)
     orders_list = (
@@ -38,7 +38,7 @@ def get_orders():
     return jsonify(multiple_orders_schema.dump(orders_list)), 200
 
 
-@orders_bp.route("/<int:order_id>", methods=["GET"])
+@orders_bp.get("/<int:order_id>")
 def get_order(order_id):
     order = db.session.execute(
         select(Order).where(Order.id == order_id)
@@ -48,7 +48,7 @@ def get_order(order_id):
     return jsonify(signle_order_schema.dump(order)), 200
 
 
-@orders_bp.route("/<int:order_id>", methods=["PUT"])
+@orders_bp.put("/<int:order_id>")
 def update_order(order_id):
     order = db.session.execute(
         select(Order).where(Order.id == order_id)
@@ -65,7 +65,7 @@ def update_order(order_id):
     return jsonify(signle_order_schema.dump(updated_order)), 200
 
 
-@orders_bp.route("/<int:order_id>", methods=["DELETE"])
+@orders_bp.delete("/<int:order_id>")
 def delete_order(order_id):
     order = db.session.execute(
         select(Order).where(Order.id == order_id)

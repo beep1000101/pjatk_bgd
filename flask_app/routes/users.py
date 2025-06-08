@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from sqlalchemy import select
 
 from database.models.users import User
 from flask_app.app import db
@@ -10,46 +11,61 @@ single_user_schema = UserSchema()
 multiple_users_schema = UserSchema(many=True)
 
 
-@users_bp.route("", methods=["POST"])
+@users_bp.post("")
 def create_user():
     data = request.get_json()
     errors = single_user_schema.validate(data)
     if errors:
         return jsonify(errors), 400
-    user = User(**data)
-    db.session.add(user)
+    new_user = single_user_schema.load(data)
+    db.session.add(new_user)
     db.session.commit()
-    return single_user_schema.jsonify(user), 201
+    db.session.refresh(new_user)
+    return jsonify(single_user_schema.dump(new_user)), 201
 
 
-@users_bp.route("", methods=["GET"])
+@users_bp.get("")
 def get_users():
-    users = User.query.all()
-    return multiple_users_schema.jsonify(users), 200
+    users_selection_statement = select(User)
+    users_list = db.session.execute(users_selection_statement).scalars().all()
+    return jsonify(multiple_users_schema.dump(users_list)), 200
 
 
-@users_bp.route("/<int:user_id>", methods=["GET"])
+@users_bp.get("/<int:user_id>")
 def get_user(user_id):
-    user = User.query.get_or_404(user_id)
-    return single_user_schema.jsonify(user), 200
+    user = db.session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+    return jsonify(single_user_schema.dump(user)), 200
 
 
-@users_bp.route("/<int:user_id>", methods=["PUT"])
+@users_bp.put("/<int:user_id>")
 def update_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
     data = request.get_json()
     errors = single_user_schema.validate(data, partial=True)
     if errors:
         return jsonify(errors), 400
-    for key, value in data.items():
-        setattr(user, key, value)
+    updated_user = single_user_schema.load(
+        data, instance=user, partial=True
+    )
     db.session.commit()
-    return single_user_schema.jsonify(user), 200
+    return jsonify(single_user_schema.dump(updated_user)), 200
 
 
-@users_bp.route("/<int:user_id>", methods=["DELETE"])
+@users_bp.delete("/<int:user_id>")
 def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted"}), 200
